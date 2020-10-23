@@ -1,9 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
-import middy from '@middy/core';
-import httpJsonBodyParser from '@middy/http-json-body-parser';
-import httpEventNormalizer from '@middy/http-event-normalizer';
-import httpErrorHandler from '@middy/http-error-handler';
+import commonMiddleware from '../lib/commonMiddleware';
 import createError from 'http-errors';
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
@@ -37,7 +34,7 @@ async function createAuction(event, context) {
 	};
 }
 
-export const handler = middy(createAuction)
-	.use(httpJsonBodyParser()) // will automatically parse our stringified event body so we no need to give JSON.parse every time
-	.use(httpEventNormalizer()) // will automatically adjust the API gateway event object to prevent us from accidentally having a non existing objects when trying to access path parameters or query parameters when they are not provided. Will save us from room for errors and IF statements
-	.use(httpErrorHandler()); // will make error handling smooth and easy
+export const handler = commonMiddleware(createAuction);
+// .use(httpJsonBodyParser()) // will automatically parse our stringified event body so we no need to give JSON.parse every time
+// .use(httpEventNormalizer()) // will automatically adjust the API gateway event object to prevent us from accidentally having a non existing objects when trying to access path parameters or query parameters when they are not provided. Will save us from room for errors and IF statements
+// .use(httpErrorHandler()); // will make error handling smooth and easy
