@@ -1,18 +1,30 @@
 import AWS from 'aws-sdk';
 import commonMiddleware from '../lib/commonMiddleware';
 import createError from 'http-errors';
+import validator from '@middy/validator';
+import getAuctionsSchema from '../lib/schemas/getAuctionSchema';
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 async function getAuctions(event, context) {
+	const { status } = event.queryStringParameters;
+
 	let auctions;
 
+	const params = {
+		TableName: process.env.AUCTIONS_TABLE_NAME,
+		IndexName: 'statusAndEndDate',
+		KeyConditionExpression: '#status = :status',
+		ExpressionAttributeValues: {
+			':status': status,
+		},
+		ExpressionAttributeNames: {
+			'#status': 'status',
+		},
+	};
+
 	try {
-		const result = await dynamodb
-			.scan({
-				TableName: process.env.AUCTIONS_TABLE_NAME,
-			})
-			.promise();
+		const result = await dynamodb.query(params).promise();
 
 		auctions = result.Items;
 	} catch (error) {
@@ -26,7 +38,9 @@ async function getAuctions(event, context) {
 	};
 }
 
-export const handler = commonMiddleware(getAuctions);
+export const handler = commonMiddleware(getAuctions).use(
+	validator({ inputSchema: getAuctionsSchema, useDefaults: true })
+);
 // .use(httpJsonBodyParser()) // will automatically parse our stringified event body so we no need to give JSON.parse every time
 // .use(httpEventNormalizer()) // will automatically adjust the API gateway event object to prevent us from accidentally having a non existing objects when trying to access path parameters or query parameters when they are not provided. Will save us from room for errors and IF statements
 // .use(httpErrorHandler()); // will make error handling smooth and easy
