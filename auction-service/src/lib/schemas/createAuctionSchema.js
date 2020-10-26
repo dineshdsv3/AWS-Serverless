@@ -7,8 +7,8 @@ const schema = {
 					type: 'string',
 				},
 			},
+			required: ['title'],
 		},
-		required: ['title'],
 	},
 	required: ['body'],
 };
