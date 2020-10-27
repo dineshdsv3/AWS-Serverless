@@ -8,6 +8,7 @@ import createAuctionSchema from '../lib/schemas/createAuctionSchema';
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 async function createAuction(event, context) {
+	const { email } = event.requestContext.authorizer;
 	const { title } = event.body;
 	const now = new Date();
 	const endDate = new Date();
@@ -22,6 +23,7 @@ async function createAuction(event, context) {
 		highestBid: {
 			amount: 0,
 		},
+		seller: email,
 	};
 
 	try {
